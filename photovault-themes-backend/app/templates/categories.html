@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Categories</h1>
+
+<section class="card">
+  <h2>New category</h2>
+  <form method="post" action="/admin/categories" enctype="multipart/form-data" class="grid-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label>Name <input name="name" maxlength="120" required></label>
+    <label>Position <input name="position" type="number" value="0"></label>
+    <label class="wide">Description <input name="description"></label>
+    <label class="wide">Thumbnail (optional) <input name="thumbnail" type="file" accept="image/*"></label>
+    <button class="primary">Create</button>
+  </form>
+</section>
+
+<section class="card">
+  <table>
+    <thead><tr><th></th><th>Name</th><th>Position</th><th>Themes</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for c in categories %}
+      <tr>
+        <td>{% if c.thumbnail_key %}<img class="thumb" src="{{ url(c.thumbnail_key) }}" alt="">{% endif %}</td>
+        <td><a href="/admin/categories/{{ c.id }}">{{ c.name }}</a></td>
+        <td>{{ c.position }}</td>
+        <td>{{ counts.get(c.id, 0) }}</td>
+        <td>{% if c.is_active %}<span class="pill on">Live</span>{% else %}<span class="pill">Hidden</span>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">No categories yet. Create the first one above.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} · Themes admin{% endblock %}
+{% block content %}
+<p><a href="/admin">← All categories</a></p>
+<h1>{{ category.name }}</h1>
+
+<section class="card">
+  <h2>Category</h2>
+  <form method="post" action="/admin/categories/{{ category.id }}/update" enctype="multipart/form-data" class="grid-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label>Name <input name="name" value="{{ category.name }}" maxlength="120" required></label>
+    <label>Position <input name="position" type="number" value="{{ category.position }}"></label>
+    <label class="wide">Description <input name="description" value="{{ category.description or '' }}"></label>
+    <label class="wide">Replace thumbnail <input name="thumbnail" type="file" accept="image/*"></label>
+    <label class="check"><input type="checkbox" name="is_active" value="true" {% if category.is_active %}checked{% endif %}> Live in the app</label>
+    <button class="primary">Save</button>
+  </form>
+  <form method="post" action="/admin/categories/{{ category.id }}/delete"
+        onsubmit="return confirm('Delete this category and all its themes? This cannot be undone.')">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="danger">Delete category</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Upload a theme</h2>
+  <form method="post" action="/admin/categories/{{ category.id }}/artworks" enctype="multipart/form-data" class="grid-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label class="wide">Image or video (JPG, PNG, WebP, GIF, MP4, WebM) <input name="file" type="file" accept="image/*,video/mp4,video/webm" required></label>
+    <label class="wide">Animated GIF preview (optional, for videos) <input name="preview_gif" type="file" accept="image/gif"></label>
+    <label>Title <input name="title" maxlength="160"></label>
+    <label>Position <input name="position" type="number" value="0"></label>
+    <label class="check"><input type="checkbox" name="is_premium" value="true"> Premium</label>
+    <button class="primary">Upload</button>
+  </form>
+</section>
+
+<section class="grid">
+{% for a in artworks %}
+  <article class="card tile {% if not a.is_active %}hidden{% endif %}">
+    {% if a.media_type == "video" %}
+      <video src="{{ url(a.file_key) }}" {% if a.gif_key %}poster="{{ url(a.gif_key) }}"{% endif %} muted loop playsinline controls preload="metadata"></video>
+    {% else %}
+      <img src="{{ url(a.gif_key or a.file_key) }}" alt="{{ a.title or '' }}" loading="lazy">
+    {% endif %}
+    <form method="post" action="/admin/artworks/{{ a.id }}/update" class="stack">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label>Title <input name="title" value="{{ a.title or '' }}" maxlength="160"></label>
+      <label>Position <input name="position" type="number" value="{{ a.position }}"></label>
+      <label>Category
+        <select name="category_id">
+          {% for c in categories %}<option value="{{ c.id }}" {% if c.id == a.category_id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" name="is_premium" value="true" {% if a.is_premium %}checked{% endif %}> Premium</label>
+      <label class="check"><input type="checkbox" name="is_active" value="true" {% if a.is_active %}checked{% endif %}> Live in the app</label>
+      <button>Save</button>
+    </form>
+    <form method="post" action="/admin/artworks/{{ a.id }}/delete" onsubmit="return confirm('Delete this theme?')">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="danger">Delete</button>
+    </form>
+  </article>
+{% else %}
+  <p class="muted">No themes in this category yet.</p>
+{% endfor %}
+</section>
+{% endblock %}
