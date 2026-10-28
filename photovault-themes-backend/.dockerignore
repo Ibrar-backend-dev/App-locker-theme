@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.venv/
+.venv-py314/
+__pycache__/
+.pytest_cache/
+.git/
+app.db
+media/

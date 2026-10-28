@@ -1,0 +1,153 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-10-28T15:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v10.0.0",
+  "resources": [
+    {
+      "_id": "wrk_app_locker_backend",
+      "parentId": null,
+      "modified": 1793218800000,
+      "created": 1793218800000,
+      "name": "App Locker Backend",
+      "description": "Public API requests used by the Photo Vault & Locker app.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_app_locker_backend",
+      "parentId": "wrk_app_locker_backend",
+      "modified": 1793218800000,
+      "created": 1793218800000,
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "public_prefix": "/api/locker-theme/public",
+        "category_id": "1"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "public_prefix",
+          "category_id"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "_type": "environment"
+    },
+    {
+      "_id": "req_categories",
+      "parentId": "wrk_app_locker_backend",
+      "modified": 1793218800000,
+      "created": 1793218800000,
+      "url": "{{ _.base_url }}{{ _.public_prefix }}/categories",
+      "name": "Get categories",
+      "description": "App endpoint for listing visible categories containing active themes.",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "1"
+        },
+        {
+          "name": "page_size",
+          "value": "20"
+        },
+        {
+          "name": "type",
+          "value": "all"
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -30,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "_type": "request"
+    },
+    {
+      "_id": "req_artworks",
+      "parentId": "wrk_app_locker_backend",
+      "modified": 1793218800000,
+      "created": 1793218800000,
+      "url": "{{ _.base_url }}{{ _.public_prefix }}/artworks",
+      "name": "Get all artworks",
+      "description": "App endpoint for listing themes across visible categories.",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "1"
+        },
+        {
+          "name": "page_size",
+          "value": "20"
+        },
+        {
+          "name": "type",
+          "value": "all"
+        },
+        {
+          "name": "premium_only",
+          "value": "false"
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -20,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "_type": "request"
+    },
+    {
+      "_id": "req_category_artworks",
+      "parentId": "wrk_app_locker_backend",
+      "modified": 1793218800000,
+      "created": 1793218800000,
+      "url": "{{ _.base_url }}{{ _.public_prefix }}/categories/{{ _.category_id }}/artworks",
+      "name": "Get artworks by category",
+      "description": "Replace category_id in the Local environment with an existing category ID.",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "1"
+        },
+        {
+          "name": "page_size",
+          "value": "20"
+        },
+        {
+          "name": "type",
+          "value": "all"
+        },
+        {
+          "name": "premium_only",
+          "value": "false"
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -10,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "_type": "request"
+    }
+  ]
+}

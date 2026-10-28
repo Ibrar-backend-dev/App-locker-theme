@@ -1,24 +1,14 @@
-# Local / single-server setup: API + Postgres. Put TLS (Caddy, Nginx, a load balancer) in front in production.
+# Local setup: API + persistent SQLite database and media files.
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: themes
-      POSTGRES_PASSWORD: themes
-      POSTGRES_DB: themes
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U themes"]
-      interval: 5s
-      retries: 10
   api:
     build: .
     env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////srv/data/app.db
+      LOCAL_MEDIA_DIR: /srv/data/media
     ports:
       - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
+    volumes:
+      - app-data:/srv/data
 volumes:
-  pgdata:
+  app-data:

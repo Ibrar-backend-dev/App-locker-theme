@@ -7,9 +7,9 @@ Own backend for the app's lock-screen themes, replacing the shared `prod-fastapi
 - **Admin panel** at `/admin`: sign in, create categories, upload images / GIFs / videos,
   set premium, order and visibility.
 - **Files** go to an S3-compatible bucket (AWS S3, Cloudflare R2, DigitalOcean Spaces) and are
-  served by a CDN over https.
+  served by a CDN over https when configured; without S3 credentials, files use local `media/`.
 
-Stack: FastAPI, SQLAlchemy 2, PostgreSQL, boto3.
+Stack: FastAPI, SQLAlchemy 2, SQLite by default (PostgreSQL supported), boto3.
 
 ## Public API
 
@@ -31,12 +31,19 @@ Rules the app relies on:
 ## Run locally (Docker)
 
 ```bash
-cp .env.example .env        # fill in ADMIN_*, SECRET_KEY and the S3 settings
+cp .env.example .env        # set a private ADMIN_PASSWORD and SECRET_KEY
 docker compose up --build
 ```
-Open http://localhost:8000/admin. For local testing without a bucket set `STORAGE_BACKEND=local`,
-`COOKIE_SECURE=false`, `PUBLIC_BASE_URL=http://localhost:8000` (the app itself needs https links,
-so use a real bucket + CDN for the app).
+Open http://localhost:8000/admin. Docker Compose uses SQLite and stores uploads in a persistent
+local volume by default. No database or S3 credentials are needed for local development.
+To use PostgreSQL, set `DATABASE_URL`; to use S3-compatible storage, set `STORAGE_BACKEND=s3`,
+`S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `CDN_BASE_URL`.
+
+### Test with Insomnia
+
+Import `App_Locker_Backend.insomnia.json` into Insomnia and start the API. Select the `Local`
+environment to test the three public API endpoints used by the app. Set `category_id` to an
+existing category ID before sending the category artworks request.
 
 ## Run the tests
 
@@ -50,7 +57,7 @@ Tests use SQLite and local file storage in a temp folder; no database or bucket 
 
 ## Deploy
 
-1. A Postgres database (managed, or the `db` service from `docker-compose.yml`).
+1. A Postgres database (managed) configured with `DATABASE_URL`.
 2. A bucket with public read through a CDN domain (e.g. R2 + a custom domain). Set `S3_*` and `CDN_BASE_URL`.
 3. Run the container behind https (Caddy / Nginx / a platform load balancer). Keep `COOKIE_SECURE=true`.
 4. Upload categories and themes in `/admin`.
@@ -58,3 +65,32 @@ Tests use SQLite and local file storage in a temp folder; no database or bucket 
    `gradle.properties` (it must end with `/`) and build.
 
 Tables are created on start-up. When the schema starts changing, add Alembic migrations.
+
+### Deploy on Railway without PostgreSQL or S3
+
+The Dockerfile reads Railway's `PORT`. Create a Railway service from the repository and set its
+Root Directory to `/photovault-themes-backend` so it finds the Dockerfile. In the service settings,
+create a volume mounted at `/data`; SQLite and uploaded files must share this one persistent volume.
+
+Set these service variables in Railway (replace the values in angle brackets):
+
+```text
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=<a-strong-unique-password>
+SECRET_KEY=<a-long-random-secret>
+COOKIE_SECURE=true
+DATABASE_URL=sqlite:////data/app.db
+STORAGE_BACKEND=local
+LOCAL_MEDIA_DIR=/data/media
+PUBLIC_BASE_URL=https://<your-railway-domain>
+```
+
+Generate a secret locally in PowerShell with
+`python -c "import secrets; print(secrets.token_urlsafe(48))"`. Generate a separate value for
+`ADMIN_PASSWORD`. Do not commit these values or put them in the Docker image.
+
+Set Railway's health check path to `/health`. After deployment, open
+`https://<your-railway-domain>/health`; it should return `{"status":"ok"}`. This setup does not
+need PostgreSQL or S3 credentials. The mounted volume keeps the SQLite database and uploads
+across redeploys, but SQLite is intended for a single service replica. For production CDN-backed
+media or horizontal scaling, use PostgreSQL and S3-compatible storage instead.
